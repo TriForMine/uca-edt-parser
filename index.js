@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const edt = xlsx.parse(`${__dirname}/edt.xlsx`);
 
-const data = edt[0].data.splice(11);
+const data = edt[0].data;
 const parsed = {'Lundi': {}, 'Mardi': {}, 'Mercredi': {}, 'Jeudi': {}, 'Vendredi': {}};
 let currentDay = undefined;
 const hourRegex = /[0-9]+h\s[0-9]+\s-\s[0-9]+h\s[0-9]+/i;
@@ -18,12 +18,12 @@ data.forEach((item, index) => {
     item.forEach((subItem, subIndex) => {
         if (parsed[subItem] !== undefined) {
             currentDay = subItem;
-        } else if (hourRegex.test(subItem)) {
+        } else if (hourRegex.test(subItem) && currentDay) {
             duration = subItem;
             if (parsed[currentDay][duration] === undefined) {
                 parsed[currentDay][duration] = [];
             }
-        } else if (duration && subItem !== null) {
+        } else if (duration && subItem !== null && currentDay) {
             let unparsedOther = subItem.split('\n').splice(1)?.join(' ').replaceAll('\r', '').trim()
             const name = subItem.split('\n')[0].replaceAll('\r', '').trim()
             let parsedName
