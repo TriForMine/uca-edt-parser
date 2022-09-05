@@ -1,7 +1,17 @@
 {
   "name": "uca-edt-parser",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "private": true,
+  "author": "TriForMine <contact@triformine.dev>",
+  "description": "Parse xlsx files sent from UCA to an usable JSON format",
+  "main": "index.js",
+"scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "github:triformine/uca-edt-parser",
+  "license": "Apache-2.0",
   "dependencies": {
-
+    "node-xlsx": "^0.21.0"
   }
 }
