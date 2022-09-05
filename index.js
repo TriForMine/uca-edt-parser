@@ -6,7 +6,7 @@ const edt = xlsx.parse(`${__dirname}/edt.xlsx`);
 const data = edt[0].data;
 const parsed = {'Lundi': {}, 'Mardi': {}, 'Mercredi': {}, 'Jeudi': {}, 'Vendredi': {}};
 let currentDay = undefined;
-const hourRegex = /[0-9]+h\s[0-9]+\s-\s[0-9]+h\s[0-9]+/i;
+const hourRegex = /[0-9]+h\s?[0-9]+\s?-\s?[0-9]+h\s?[0-9]+/i;
 const groupRegex = /Gr\s?[A-Z0-9]+/ig;
 const clearGroupRegex = /\(Gr\s?[A-Z0-9]+\)/ig;
 const salleRegex = /(salle|amphi)\s[a-zA-Z0-9]+/ig
@@ -27,7 +27,7 @@ data.forEach((item, index) => {
             let unparsedOther = subItem.split('\n').splice(1)?.join(' ').replaceAll('\r', '').trim()
             const name = subItem.split('\n')[0].replaceAll('\r', '').trim()
             let parsedName
-            let type = undefined
+            let type
 
             const group = unparsedOther ? [...unparsedOther?.matchAll(groupRegex)].map((data) => data[0].replaceAll('Gr ', '').replaceAll('Gr', '')) : []
             unparsedOther = unparsedOther?.replaceAll(clearGroupRegex, '').trim()
@@ -48,12 +48,21 @@ data.forEach((item, index) => {
             const salle = unparsedOther?.matchAll(salleRegex)
             const cleanedSalle = salle ? [...salle].map((data) => data[0].replaceAll('salles', '').replaceAll('salle', '').trim()) : undefined
 
-            for (let i = 0; i < group.length; i++) {
+            if (group.length > 0) {
+                for (let i = 0; i < group.length; i++) {
+                    parsed[currentDay][duration].push({
+                        name: parsedName,
+                        type,
+                        salle: cleanedSalle?.[i],
+                        group: group[i],
+                        unparsed: subItem
+                    })
+                }
+            } else {
                 parsed[currentDay][duration].push({
                     name: parsedName,
                     type,
-                    salle: cleanedSalle?.[i],
-                    group: group[i],
+                    salle: cleanedSalle?.[0],
                     unparsed: subItem
                 })
             }

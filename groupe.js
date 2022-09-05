@@ -10,6 +10,8 @@ const UE = data[0].splice(4).map((item) => item.trim());
 const parsed = {};
 
 data.forEach((item, index) => {
+    if (index === 0) return; // Skip header
+
     const numETU = item[1]
     const result = {}
 
