@@ -1,6 +1,12 @@
 const xlsx = require('node-xlsx').default;
 const fs = require('fs');
-const abbreviations = require('./UE_Codes');
+
+let abbreviations = {}
+if (fs.existsSync('parsed.json')) {
+    abbreviations = require('./UE_Codes');
+} else {
+    console.warn('\x1b[33m', 'No abbreviations file found. Please run this script twice. If you want to have the same name for CM and TP/TD.', "\x1b[0m");
+}
 
 const edt = xlsx.parse(`${__dirname}/edt.xlsx`);
 
