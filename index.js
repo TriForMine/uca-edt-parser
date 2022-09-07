@@ -1,19 +1,14 @@
 const xlsx = require('node-xlsx').default;
 const fs = require('fs');
 
-let abbreviations = {}
-if (fs.existsSync('parsed.json')) {
-    abbreviations = require('./UE_Codes');
-} else {
-    console.warn('\x1b[33m', 'No abbreviations file found. Please run this script twice. If you want to have the same name for CM and TP/TD.', "\x1b[0m");
-}
+const generateAbbrFromEdt = require('./UE_Codes');
 
 const edt = xlsx.parse(`${__dirname}/edt.xlsx`);
 
 const data = edt[0].data;
 const parsed = {'Lundi': {}, 'Mardi': {}, 'Mercredi': {}, 'Jeudi': {}, 'Vendredi': {}};
 let currentDay = undefined;
-const hourRegex = /[0-9]+h\s?[0-9]+\s?-\s?[0-9]+h\s?[0-9]+/i;
+const hourRegex = /[0-9]+h?\s?[0-9]+\s?-\s?[0-9]+h?\s?[0-9]+/i;
 const groupRegex = /Gr\s?[A-Z0-9]+/ig;
 const clearGroupRegex = /\(Gr\s?[A-Z0-9]+\)/ig;
 const salleRegex = /(salle|amphi)\s[a-zA-Z0-9]+/ig
@@ -28,8 +23,9 @@ data.forEach((item) => {
     item.forEach((subItem) => {
         if (parsed[subItem] !== undefined) {
             currentDay = subItem;
-        } else if (hourRegex.test(subItem) && currentDay) {
-            horaires = subItem;
+        } else if (hourRegex.test(subItem.replaceAll('  ', '').trim()) && currentDay) {
+
+            horaires = subItem.replaceAll('  ', '').trim();
             if (parsed[currentDay][horaires] === undefined) {
                 parsed[currentDay][horaires] = [];
             }
@@ -90,7 +86,7 @@ data.forEach((item) => {
             if (group.length > 0) {
                 for (let i = 0; i < group.length; i++) {
                     parsed[currentDay][currentHoraires].push({
-                        name: abbreviations[parsedName] ? abbreviations[parsedName] : parsedName,
+                        name: parsedName,
                         type,
                         salle: cleanedSalle?.[i],
                         group: group[i],
@@ -99,7 +95,7 @@ data.forEach((item) => {
                 }
             } else {
                 parsed[currentDay][currentHoraires].push({
-                    name: abbreviations[parsedName] ? abbreviations[parsedName] : parsedName,
+                    name: parsedName,
                     type,
                     salle: cleanedSalle?.[0],
                     unparsed: subItem
@@ -108,5 +104,22 @@ data.forEach((item) => {
         }
     });
 })
+
+const abbr = generateAbbrFromEdt(parsed);
+
+// Convert TD/TP name to the CM name
+Object.entries(parsed).forEach(([day]) => {
+    Object.entries(parsed[day]).forEach(([hour]) => {
+        Object.entries(parsed[day][hour]).forEach(([cours, value]) => {
+            if (value.type !== 'CM') {
+                if (abbr[value.name]) {
+                    parsed[day][hour][cours] = {...value, name: abbr[value.name]}
+                } else if (value.type !== 'CM') {
+                    console.log(value)
+                }
+            }
+        })
+    })
+});
 
 fs.writeFileSync('parsed.json', JSON.stringify(parsed));
