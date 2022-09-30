@@ -2,6 +2,7 @@ const xlsx = require('node-xlsx').default;
 const fs = require('fs');
 
 const generateAbbrFromEdt = require('./UE_Codes');
+const {getGroupeList} = require("./helpers");
 
 const edt = xlsx.parse(`${__dirname}/edt.xlsx`);
 
@@ -16,14 +17,16 @@ const parenthesesRegex = /\(([^)]+)\)/ig;
 const startRegex = /début ([^)]+)\)/ig;
 const endRegex = /fin ([^)]+)\)/ig;
 
+const SEMESTER = 3;
+
 data.forEach((item) => {
     let horaires = undefined;
     if (item.length === 0) return;
 
-    item.forEach((subItem) => {
+    item.forEach((subItem, i) => {
         if (parsed[subItem] !== undefined) {
             currentDay = subItem;
-        } else if (hourRegex.test(subItem.replaceAll('  ', '').trim()) && currentDay) {
+        } else if (hourRegex.test(subItem.replaceAll('  ', '').trim()) && currentDay && i <= 3) {
 
             horaires = subItem.replaceAll('  ', '').trim();
             if (parsed[currentDay][horaires] === undefined) {
@@ -35,7 +38,8 @@ data.forEach((item) => {
             let parsedName
             let type
 
-            const group = unparsedOther ? [...unparsedOther?.matchAll(groupRegex)].map((data) => data[0].replaceAll('Gr ', '').replaceAll('Gr', '')) : []
+            let group = unparsedOther ? [...unparsedOther?.matchAll(groupRegex)].map((data) => data[0].replaceAll('Gr ', '').replaceAll('Gr', '')) : []
+
             unparsedOther = unparsedOther?.replaceAll(clearGroupRegex, '').trim()
             if (unparsedOther === '')
                 unparsedOther = undefined
@@ -83,6 +87,23 @@ data.forEach((item) => {
                 }
             }
 
+            if (subItem.includes('Economie d\'assurance')) {
+                parsedName = 'Economie d\'assurance'
+            } else if (subItem.includes('Economie bancaire')) {
+                parsedName = 'Economie bancaire'
+            } else if (subItem.includes('Culture Economie')) {
+                parsedName = 'Culture Economie'
+            } else if (subItem.includes('Introduction à l\'Analyse d\'Economie')) {
+                parsedName = 'Introduction à l\'Analyse d\'Economie'
+            }
+
+            if (type === "CM" && group.length > 0 && !group.includes('1') && name !== "ANGLAIS") {
+                const groupes = getGroupeList(parsedName)
+
+                const tempGroupes = group
+                group = [...groupes.values()].filter((groupe) => tempGroupes.find((tempGroupe) => groupe.startsWith(tempGroupe))).map((groupe) => groupe.replaceAll('_G', ''))
+            }
+
             if (group.length > 0) {
                 for (let i = 0; i < group.length; i++) {
                     parsed[currentDay][currentHoraires].push({
@@ -114,12 +135,29 @@ Object.entries(parsed).forEach(([day]) => {
             if (value.type !== 'CM') {
                 if (abbr[value.name]) {
                     parsed[day][hour][cours] = {...value, name: abbr[value.name]}
-                } else if (value.type !== 'CM') {
+                } else if (value.type !== 'CM' && !Object.values(abbr).includes(value.name) && value.name !== 'Physique' && value.name !== 'Chimie') {
                     console.log(value)
                 }
             }
         })
     })
 });
+
+if (SEMESTER === 3) {
+    parsed['Mercredi']['13h 15 - 15h 15'].push({
+        name: 'Programmation fonctionelle (PF)',
+        type: 'TD',
+        salle: 'M11',
+        group: '1',
+        unparsed: 'TD Programmation fonctionelle (PF)\n\nM11'
+    })
+    parsed['Mercredi']['15h 30 - 17h 30'].push({
+        name: 'Programmation fonctionelle (PF)',
+        type: 'TP',
+        salle: 'PV 301',
+        group: '1',
+        unparsed: 'TP Programmation fonctionelle (PF)\n\nPV 301'
+    })
+}
 
 fs.writeFileSync('parsed.json', JSON.stringify(parsed));

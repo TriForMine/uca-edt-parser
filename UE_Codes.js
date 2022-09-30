@@ -4,9 +4,20 @@ const tps = new Set();
 const parenthesesRegex = /\(([^)]+)\)/;
 const abbrToName = {
     'EM': 'Physique : Electromagnétisme 1',
+    'OM/EM': 'Physique : Outils Mathématiques',
     'OM': 'Physique : Outils Mathématiques',
     'PT': 'Physique de la Terre',
+    'RM/RT': 'Roches et Minéraux',
     '(BD)': 'Bases de données (BD)',
+    '(PF)': 'Programmation Fonctionnelle (PF)',
+    '(SE)': 'Systèmes embarquées (SE)',
+    'Systèmes embarqués (SE)': 'Systèmes embarquées (SE)',
+    '(OF)': 'Outils formels de l\'Informatique (OF)',
+    'Physique : Electromagnétisme 1': 'Physique : Electromagnétisme 1',
+    'Physique : Outils Mathématiques': 'Physique : Outils Mathématiques',
+    'Physique de la Terre': 'Physique de la Terre',
+    'TG': 'Science de la Terre : Le Temps en Géosciences',
+    'Bases': 'Bases des Mathématiques'
 };
 
 function generateAbbrFromEdt(edt) {
