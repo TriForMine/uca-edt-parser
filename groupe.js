@@ -1,7 +1,7 @@
 const xlsx = require('node-xlsx').default;
 const fs = require('fs');
 
-const edt = xlsx.parse(`${__dirname}/groupe.xlsx`);
+const edt = xlsx.parse(`${__dirname}/groupe_l2.xlsx`);
 const {UENameToCM} = require('./helpers');
 
 const data = edt[0].data;
@@ -52,7 +52,14 @@ data.forEach((item, index) => {
                         result[UE[i - 4]] = item[i].replaceAll('G', '').trim()
                     }
                 } else {
-                    result[UE[i - 4]] = item[i].replaceAll('_G', '').replaceAll('_G', '').replaceAll('_G', '').replaceAll('D_G', '').trim()
+                    const separateTP = item[i].split(' / ')
+                    if (separateTP.length === 2) {
+                        const  groups = [...item[i].matchAll(/G([0-9]{1,2}) \/ TP G?([0-9]{1,2})/gi)]
+                        result[UE[i - 4]] = groups[0][1]
+                        result[UE[i - 4] + ' - TP'] = groups[0][2]
+                    } else {
+                        result[UE[i - 4]] = item[i].replaceAll('_G', '').replaceAll('_G', '').replaceAll('_G', '').replaceAll('D_G', '').trim()
+                    }
                 }
             } else {
                 result[UE[i - 4]] = item[i].toString().trim()

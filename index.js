@@ -4,20 +4,21 @@ const fs = require('fs');
 const generateAbbrFromEdt = require('./UE_Codes');
 const {getGroupeList} = require("./helpers");
 
-const edt = xlsx.parse(`${__dirname}/edt.xlsx`);
+const edt = xlsx.parse(`${__dirname}/edt_l2.xlsx`);
 
 const data = edt[0].data;
 const parsed = {'Lundi': {}, 'Mardi': {}, 'Mercredi': {}, 'Jeudi': {}, 'Vendredi': {}};
 let currentDay = undefined;
 const hourRegex = /[0-9]+h?\s?[0-9]+\s?-\s?[0-9]+h?\s?[0-9]+/i;
-const groupRegex = /Gr\s?[A-Z0-9]+/ig;
-const clearGroupRegex = /\(Gr\s?[A-Z0-9]+\)/ig;
-const salleRegex = /(salle|amphi)\s[a-zA-Z0-9]+/ig
+const customHourRegex = /(([0-9]{1,2} [0-9]{1,2}) - ([0-9]{1,2} [0-9]{1,2}))/ig
+const customStartRegex = /(début ([0-9]{1,2} [0-9]{1,2}))/ig
+const groupRegex = /(GrTP\s?[A-Z0-9]+)|(Gr\s?[A-Z0-9]+)|(G\s?[A-Z0-9]+)|(TP\s?[A-Z0-9])/ig;
+const clearGroupRegex = /\(GrTP\s?[A-Z0-9]+\)|\(Gr\s?[A-Z0-9]+\)|\(G\s?[A-Z0-9]+\)|\(TP\s?[A-Z0-9]+\)/ig;
+const salleRegex = /((salle|amphi)\s[a-zA-Z0-9]+)|M[0-9]{2}|C[0-9]{2}|PV[0-9]{3}/ig
 const parenthesesRegex = /\(([^)]+)\)/ig;
-const startRegex = /début ([^)]+)\)/ig;
 const endRegex = /fin ([^)]+)\)/ig;
 
-const SEMESTER = 3;
+const SEMESTER = 4;
 
 data.forEach((item) => {
     let horaires = undefined;
@@ -38,7 +39,7 @@ data.forEach((item) => {
             let parsedName
             let type
 
-            let group = unparsedOther ? [...unparsedOther?.matchAll(groupRegex)].map((data) => data[0].replaceAll('Gr ', '').replaceAll('Gr', '')) : []
+            let group = unparsedOther ? [...unparsedOther?.matchAll(groupRegex)].map((data) => data[0].replaceAll('GrTP', '').replaceAll('Gr ', '').replaceAll('TP ', '').replaceAll('Gr', '').replaceAll('G', '').trim()) : []
 
             unparsedOther = unparsedOther?.replaceAll(clearGroupRegex, '').trim()
             if (unparsedOther === '')
@@ -62,18 +63,6 @@ data.forEach((item) => {
             const cleanedSalle = salle ? [...salle].map((data) => data[0].replaceAll('salles', '').replaceAll('salle', '').trim()) : undefined
 
             let currentHoraires = horaires
-
-            if (parsedName.match(startRegex)) {
-                const end = currentHoraires.split('-')?.[1].trim()
-                const start = startRegex.exec(parsedName)?.[1].trim().split(' ').join('h ')
-
-                parsedName = parsedName.replaceAll(parenthesesRegex, '').trim()
-
-                currentHoraires = `${start} - ${end}`
-                if (!parsed[currentDay][currentHoraires]) {
-                    parsed[currentDay][currentHoraires] = []
-                }
-            }
 
             if (parsedName.match(endRegex)) {
                 const end = endRegex.exec(parsedName)?.[1].trim().split(' ').join('h ')
@@ -102,6 +91,21 @@ data.forEach((item) => {
 
                 const tempGroupes = group
                 group = [...groupes.values()].filter((groupe) => tempGroupes.find((tempGroupe) => groupe.startsWith(tempGroupe))).map((groupe) => groupe.replaceAll('_G', ''))
+            }
+
+            const customHours = [...subItem.matchAll(customHourRegex)]
+            const customStart = [...subItem.matchAll(customStartRegex)]
+
+            if (customHours.length > 0) {
+                currentHoraires = customHours[0][1]
+            }
+
+            if (customStart.length > 0) {
+                currentHoraires = customStart[0][2] + ' - ' + currentHoraires.split(' - ')[1]
+            }
+
+            if (parsed[currentDay][currentHoraires] === undefined) {
+                parsed[currentDay][currentHoraires] = []
             }
 
             if (group.length > 0) {
@@ -134,7 +138,11 @@ Object.entries(parsed).forEach(([day]) => {
         Object.entries(parsed[day][hour]).forEach(([cours, value]) => {
             if (value.type !== 'CM') {
                 if (abbr[value.name]) {
-                    parsed[day][hour][cours] = {...value, name: abbr[value.name]}
+                    if ((abbr[value.name] === 'Systèmes 2 (S2)' || abbr[value.name] === 'Résolution numérique des systèmes d\'équations (RN)') && value.type === 'TP') {
+                        parsed[day][hour][cours] = {...value, name: abbr[value.name] + ' - TP'}
+                    } else {
+                        parsed[day][hour][cours] = {...value, name: abbr[value.name] }
+                    }
                 } else if (value.type !== 'CM' && !Object.values(abbr).includes(value.name) && value.name !== 'Physique' && value.name !== 'Chimie') {
                     console.log(value)
                 }

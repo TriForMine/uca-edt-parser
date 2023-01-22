@@ -1,5 +1,5 @@
 const xlsx = require("node-xlsx");
-const groupes = xlsx.parse(`${__dirname}/groupe.xlsx`);
+const groupes = xlsx.parse(`${__dirname}/groupe_l2.xlsx`);
 
 
 const UENameToCM = {
@@ -98,6 +98,37 @@ const UENameToCM = {
     "SPEV303": "Organisation du Vivant Animal (OVA)",
     "SPEV304" : "Organisation du Vivant Végétal (OVV)",
     "SV : Mode d'organisation des végétaux et des animaux" : "",
+
+    "Anglais-4 (SCIENCES)": "ANGLAIS",
+    "MATHS S4 : Analyse": "Analyse (ANA)",
+    "MATHS S4 : Probabilités et introduction aux statistiques": "Probabilités et Introduction à la Statistiques (PS)",
+    "MATHS S4 : Algèbre": "Algèbre (ALG)",
+    "MATHS S4 : Résolution numérique des systèmes d'équations": "Résolution numérique des systèmes d'équations (RN)",
+    "MATHS S4 : Méthodes - approche aléatoire": "Approche Aléatoire (MMAA)",
+    "MIASHS S4 : Mathématiques pour la finance": "Mathématiques pour la finance",
+    "CLE2D Géométrie - S4": "2D Géométrie",
+    "MIASHS S4 : Macroéconomie 2": "Macroéconomie 2 (EGE4)",
+    "MIASHS S4 : AGGE - Approche globale de la Gestion des Entreprises": "AGGE",
+    "MIASHS S4 : Management basics": "Management Basics",
+    "INFO S4 : Algorithmique 1": "Algorithmique 1 (ALGO)",
+    "INFO S4 : Réseaux et télécommunication": "Réseaux et Télécommunication (RT)",
+    "INFO S4 : Systèmes 2 - mécanismes internes syst.": "Systèmes 2 (S2)",
+    "INFO S4 : Technologies du web": "Technologies du Web (TW)",
+    "INFO S4 : Concepts de l'intelligence artificielle": "Concepts d'Intelligence artificifielle  (CIA)",
+    "INFO S4 : Introduction aux systèmes intelligents": "",
+    "PHYSIQUE S4 : Electromagnétisme 2": "Electromagnétisme 2",
+    "PHYSIQUE S4 : Ondes": "Ondes",
+    "PHYSIQUE S4 : Mécanique 3": "Mécanique 3 (M3)",
+    "Physique S4 : Outils mathématiques 2": "Physique : Outils Mathématiques",
+    "Physique S4 : Compléments de mécanique et thermodynamiq": "Compléments de mécanique et thermodynamique (2DCMT)",
+    "CHIMIE S4 : Vision macroscopique des molécules": "Vision macroscopique des molécules (VM)",
+    "Chimie S4 : Spectroscopie": "Spectroscopie",
+    "CHIMIE S4 : Matériaux 2" : "Matériaux 2  (M2)",
+    "CHIMIE S4 : Chimie organique fonctionnelle II": "Chimie organique fonctionelle II  (CO)",
+    "ELECTRONIQUE S4 : Système optimisé en énergie": "Systèmes optimisé en énergie (SOE)",
+    "ELECTRONIQUE S4 : Electronique analogique avancée": "Electronique analogique avancée (EAA)",
+    "ELECTRONIQUE S4 : Architecture des processeurs": "Architecture des processeurs (AP)",
+    "ELECTRONIQUE S4 : Systèmes robotisés communiquants": "Systèmes robotisés communiquants (SE2)",
 };
 
 const getGroupeList = (name) => {
