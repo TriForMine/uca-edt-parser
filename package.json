@@ -14,6 +14,6 @@
   "repository": "github:triformine/uca-edt-parser",
   "license": "Apache-2.0",
   "dependencies": {
-    "node-xlsx": "0.21.0"
+    "node-xlsx": "0.23.0"
   }
 }
